@@ -186,7 +186,7 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
   }
 
   return (
-    <div className="w-96 h-full bg-sidebar border-l border-sidebar-border flex flex-col">
+    <div className="w-96 h-full max-h-screen bg-sidebar border-l border-sidebar-border flex flex-col overflow-hidden">
       <Card className="h-full rounded-none border-0 flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
           </div>
         </CardHeader>
 
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 overflow-y-auto">
           <CardContent className="space-y-6 p-4">
             {hasUnsavedChanges && (
               <Alert>
