@@ -22,7 +22,7 @@ import "@xyflow/react/dist/style.css"
 import { Button } from "@/components/ui/button"
 import { Plus, Download } from "lucide-react"
 import { StepNode } from "@/components/step-node"
-import { EditingPanel } from "@/components/editing-panel"
+import { EditingPanel, type NodeDataType } from "@/components/editing-panel"
 import { ExportModal } from "@/components/export-modal"
 import { CustomEdge } from "@/components/custom-edge"
 
@@ -45,7 +45,7 @@ const initialSteps = [
   },
 ]
 
-const initialNodes: Node[] = [
+const initialNodes: Node<NodeDataType>[] = [
   {
     id: "1",
     type: "stepNode",
@@ -65,9 +65,9 @@ const edgeTypes = {
 }
 
 export default function FlowBuilder() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeDataType>>(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null)
+  const [selectedNode, setSelectedNode] = useState<Node<NodeDataType> | null>(null)
   const [showExportModal, setShowExportModal] = useState(false)
   const [nextStepId, setNextStepId] = useState(2)
 
@@ -201,7 +201,7 @@ export default function FlowBuilder() {
     [setEdges, setNodes],
   )
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node<NodeDataType>) => {
     setSelectedNode(node)
   }, [])
 
@@ -216,7 +216,7 @@ export default function FlowBuilder() {
       few_shot_examples: {},
     }
 
-    const newNode: Node = {
+    const newNode: Node<NodeDataType> = {
       id: nextStepId.toString(),
       type: "stepNode",
       position: { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
@@ -275,13 +275,13 @@ export default function FlowBuilder() {
   }, [nodes, edges])
 
   const handleImportData = useCallback(
-    (importedData: any[]) => {
+    (importedData: NodeDataType[]) => {
       // Clear existing nodes and edges
       setNodes([])
       setEdges([])
 
       // Create nodes from imported data
-      const newNodes: Node[] = importedData.map((step, index) => ({
+      const newNodes: Node<NodeDataType>[] = importedData.map((step, index) => ({
         id: step.step_id.toString(),
         type: "stepNode",
         position: { x: 100 + (index % 3) * 350, y: 100 + Math.floor(index / 3) * 200 },

@@ -1,7 +1,7 @@
 "use client"
 
 import { memo } from "react"
-import { type EdgeProps, getBezierPath, EdgeLabelRenderer } from "@xyflow/react"
+import { type EdgeProps, getBezierPath, EdgeLabelRenderer, useReactFlow } from "@xyflow/react"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -18,7 +18,9 @@ export const CustomEdge = memo(
     markerEnd,
     data,
   }: EdgeProps) => {
-    const calculateSmartPath = () => {
+    const { deleteElements } = useReactFlow()
+
+     const calculateSmartPath = () => {
       const dx = targetX - sourceX
       const dy = targetY - sourceY
       const distance = Math.sqrt(dx * dx + dy * dy)
@@ -104,7 +106,7 @@ export const CustomEdge = memo(
           >
             <div className="flex items-center gap-1 bg-background border border-border rounded px-2 py-1 shadow-md">
               <span className="text-xs font-mono text-emerald-600 font-medium">
-                {data?.sourceHandle || "connection"}
+                {data?.sourceHandle && typeof data.sourceHandle === 'string' ? data.sourceHandle : "connection"}
               </span>
               <Button
                 variant="ghost"
@@ -112,9 +114,7 @@ export const CustomEdge = memo(
                 className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
                 onClick={(event) => {
                   event.stopPropagation()
-                  // The edge deletion is handled by React Flow's built-in delete functionality
-                  const deleteEvent = new KeyboardEvent("keydown", { key: "Delete" })
-                  document.dispatchEvent(deleteEvent)
+                  deleteElements({ edges: [{ id }] })
                 }}
               >
                 <X className="w-3 h-3" />

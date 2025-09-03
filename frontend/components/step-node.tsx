@@ -78,10 +78,10 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
                   />
                   <div className="flex-1 p-2 bg-muted rounded text-xs transition-all duration-200 group-hover:bg-accent/20 group-hover:border group-hover:border-accent pr-4">
                     <div className="flex items-center gap-1">
-                      <Grip className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {/* <Grip className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" /> */}
                       <span className="font-mono text-emerald-600 font-medium">{key}:</span>
                     </div>
-                    <span className="ml-1 text-foreground">{value}</span>
+                    <span className="text-foreground">{value}</span>
                   </div>
                 </div>
               ))}

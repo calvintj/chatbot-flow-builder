@@ -14,9 +14,17 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+export type NodeDataType = {
+  step_id: number
+  instruction: string
+  answer_options: Record<string, string>
+  transitions: Record<string, number>
+  few_shot_examples: Record<string, { bot_prompt: string; user_answer: string }[]>
+}
+
 interface EditingPanelProps {
-  node: Node
-  onUpdateNode: (nodeId: string, newData: any) => void
+  node: Node<NodeDataType>
+  onUpdateNode: (nodeId: string, newData: NodeDataType) => void
   onDeleteNode?: (nodeId: string) => void
   onClose: () => void
 }
@@ -26,7 +34,7 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
   const [answerOptions, setAnswerOptions] = useState(node.data.answer_options)
   const [fewShotExamples, setFewShotExamples] = useState(node.data.few_shot_examples)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
+  const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({})
   const [previewMode, setPreviewMode] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -63,27 +71,65 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
     setHasUnsavedChanges(false)
   }
 
+  // --- FIX START: Improved new key generation ---
   const addAnswerOption = () => {
     const existingKeys = Object.keys(answerOptions)
-    const newKey = `option_${existingKeys.length + 1}`
+    // Find the highest number in keys like "option_1", "option_2", etc.
+    const maxOptionNum = existingKeys
+      .filter((key) => key.startsWith("option_"))
+      .map((key) => parseInt(key.substring(7), 10))
+      .filter((num) => !isNaN(num))
+      .reduce((max, num) => Math.max(max, num), 0)
+
+    const newKey = `option_${maxOptionNum + 1}`
+
     setAnswerOptions((prev) => ({
       ...prev,
-      [newKey]: "New option",
+      [newKey]: "New option description",
     }))
   }
+  // --- FIX END ---
 
+  // --- FIX START: Robust update logic for keys and values ---
   const updateAnswerOption = (oldKey: string, newKey: string, value: string) => {
-    setAnswerOptions((prev) => {
-      const updated = { ...prev }
-      if (oldKey !== newKey && newKey.trim() !== "") {
-        delete updated[oldKey]
-        updated[newKey] = value
-      } else {
-        updated[oldKey] = value
+    const trimmedNewKey = newKey.trim()
+
+    // Case 1: Only the description (value) is being updated.
+    if (oldKey === trimmedNewKey) {
+      setAnswerOptions((prev) => ({ ...prev, [oldKey]: value }))
+      return
+    }
+
+    // Case 2: The key is being renamed.
+    // Prevent creating an empty key or a key that already exists.
+    if (!trimmedNewKey || (answerOptions[trimmedNewKey] && trimmedNewKey !== oldKey)) {
+      // You could add user feedback here, e.g., a toast notification.
+      return
+    }
+
+    // Rebuild the answerOptions object to rename the key while preserving order.
+    const newAnswerOptions = Object.entries(answerOptions).reduce(
+      (acc, [key, val]) => {
+        // When the `onChange` for the key input is fired, the `value` param
+        // will be the original description, so we use that.
+        acc[key === oldKey ? trimmedNewKey : key] = key === oldKey ? value : val
+        return acc
+      },
+      {} as Record<string, string>,
+    )
+    setAnswerOptions(newAnswerOptions)
+
+    // Also, rename the corresponding key in fewShotExamples to keep data in sync.
+    setFewShotExamples((prevExamples) => {
+      const newExamples = { ...prevExamples }
+      if (newExamples[oldKey]) {
+        newExamples[trimmedNewKey] = newExamples[oldKey]
+        delete newExamples[oldKey]
       }
-      return updated
+      return newExamples
     })
   }
+  // --- FIX END ---
 
   const removeAnswerOption = (key: string) => {
     setAnswerOptions((prev) => {
@@ -91,7 +137,7 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
       delete updated[key]
       return updated
     })
-    // Also remove associated few-shot examples
+    // This part was already correct, but it's important that it stays.
     setFewShotExamples((prev) => {
       const updated = { ...prev }
       delete updated[key]
@@ -125,10 +171,10 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
     }))
   }
 
-  const toggleSection = (key: string) => {
+  const toggleSection = (sectionIndex: number) => {
     setExpandedSections((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [sectionIndex]: !prev[sectionIndex],
     }))
   }
 
@@ -236,28 +282,28 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
                     </Button>
                   </div>
 
-                  {Object.entries(answerOptions).map(([key, value]) => (
+                  {Object.entries(answerOptions).map(([optKey, optValue], index) => (
                     <Collapsible
-                      key={`option-${key}`}
-                      open={expandedSections[key] !== false}
-                      onOpenChange={() => toggleSection(key)}
+                      key={`option-${index}-${node.id}`}
+                      open={expandedSections[index] !== false}
+                      onOpenChange={() => toggleSection(index)}
                     >
                       <div className="space-y-3 p-4 border-2 border-border rounded-lg bg-card/50">
                         <CollapsibleTrigger asChild>
                           <div className="flex items-center justify-between cursor-pointer">
                             <Badge variant="outline" className="font-mono text-xs">
-                              {key}
+                              {optKey}
                             </Badge>
                             <div className="flex items-center gap-1">
                               <Badge variant="secondary" className="text-xs">
-                                {(fewShotExamples[key] || []).length} examples
+                                {(fewShotExamples[optKey] || []).length} examples
                               </Badge>
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  removeAnswerOption(key)
+                                  removeAnswerOption(optKey)
                                 }}
                                 className="h-5 w-5 p-0 hover:bg-destructive/10"
                               >
@@ -271,9 +317,9 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
                           <div className="space-y-2">
                             <Label className="text-xs text-muted-foreground">Option Key</Label>
                             <Input
-                              key={`option-key-${key}-${node.id}`}
-                              value={key}
-                              onChange={(e) => updateAnswerOption(key, e.target.value, value)}
+                              key={`option-key-${index}-${node.id}`}
+                              value={optKey}
+                              onChange={(e) => updateAnswerOption(optKey, e.target.value, optValue)}
                               placeholder="Option key (e.g., yes, no, maybe)"
                               className="font-mono text-xs border-2 border-input bg-background focus:border-ring"
                             />
@@ -281,9 +327,9 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
                           <div className="space-y-2">
                             <Label className="text-xs text-muted-foreground">Option Description</Label>
                             <Textarea
-                              key={`option-value-${key}-${node.id}`}
-                              value={value}
-                              onChange={(e) => updateAnswerOption(key, key, e.target.value)}
+                              key={`option-value-${index}-${node.id}`}
+                              value={optValue}
+                              onChange={(e) => updateAnswerOption(optKey, optKey, e.target.value)}
                               placeholder="Describe what this option means..."
                               className="min-h-[60px] resize-none border-2 border-input bg-background focus:border-ring"
                             />
@@ -296,7 +342,7 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => addFewShotExample(key)}
+                                onClick={() => addFewShotExample(optKey)}
                                 className="h-6 px-2 text-xs"
                               >
                                 <Plus className="w-3 h-3 mr-1" />
@@ -304,17 +350,17 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
                               </Button>
                             </div>
 
-                            {(fewShotExamples[key] || []).map((example, index) => (
+                            {(fewShotExamples[optKey] || []).map((example, subIndex) => (
                               <div
-                                key={`example-${key}-${index}`}
+                                key={`example-${optKey}-${subIndex}-${node.id}`}
                                 className="space-y-2 p-3 bg-muted/50 border border-border rounded-md"
                               >
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-medium">Example {index + 1}</span>
+                                  <span className="text-xs font-medium">Example {subIndex + 1}</span>
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    onClick={() => removeFewShotExample(key, index)}
+                                    onClick={() => removeFewShotExample(optKey, subIndex)}
                                     className="h-5 w-5 p-0 hover:bg-destructive/10"
                                   >
                                     <X className="w-3 h-3" />
@@ -324,9 +370,11 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
                                   <div>
                                     <Label className="text-xs text-muted-foreground">Bot Prompt</Label>
                                     <Input
-                                      key={`bot-prompt-${key}-${index}-${node.id}`}
+                                      key={`bot-prompt-${optKey}-${subIndex}-${node.id}`}
                                       value={example.bot_prompt}
-                                      onChange={(e) => updateFewShotExample(key, index, "bot_prompt", e.target.value)}
+                                      onChange={(e) =>
+                                        updateFewShotExample(optKey, subIndex, "bot_prompt", e.target.value)
+                                      }
                                       placeholder="What the bot says..."
                                       className="text-xs border border-input bg-background mt-1"
                                     />
@@ -334,9 +382,11 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
                                   <div>
                                     <Label className="text-xs text-muted-foreground">User Answer</Label>
                                     <Input
-                                      key={`user-answer-${key}-${index}-${node.id}`}
+                                      key={`user-answer-${optKey}-${subIndex}-${node.id}`}
                                       value={example.user_answer}
-                                      onChange={(e) => updateFewShotExample(key, index, "user_answer", e.target.value)}
+                                      onChange={(e) =>
+                                        updateFewShotExample(optKey, subIndex, "user_answer", e.target.value)
+                                      }
                                       placeholder="Expected user response..."
                                       className="text-xs border border-input bg-background mt-1"
                                     />
@@ -372,10 +422,6 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
               Delete Step
             </Button>
           )}
-
-          <p className="text-xs text-muted-foreground text-center">
-            Changes are auto-saved when you click outside inputs
-          </p>
         </div>
       </Card>
     </div>
