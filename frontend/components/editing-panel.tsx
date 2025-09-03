@@ -316,12 +316,12 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
                         <CollapsibleContent className="space-y-3">
                           <div className="space-y-2">
                             <Label className="text-xs text-muted-foreground">Option Key</Label>
-                            <Input
+                            <Textarea
                               key={`option-key-${index}-${node.id}`}
                               value={optKey}
                               onChange={(e) => updateAnswerOption(optKey, e.target.value, optValue)}
                               placeholder="Option key (e.g., yes, no, maybe)"
-                              className="font-mono text-xs border-2 border-input bg-background focus:border-ring"
+                              className="font-mono text-xs border-2 border-input bg-background focus:border-ring min-h-[2rem] resize-none"
                             />
                           </div>
                           <div className="space-y-2">
@@ -369,26 +369,26 @@ export function EditingPanel({ node, onUpdateNode, onDeleteNode, onClose }: Edit
                                 <div className="space-y-2">
                                   <div>
                                     <Label className="text-xs text-muted-foreground">Bot Prompt</Label>
-                                    <Input
+                                    <Textarea
                                       key={`bot-prompt-${optKey}-${subIndex}-${node.id}`}
                                       value={example.bot_prompt}
                                       onChange={(e) =>
                                         updateFewShotExample(optKey, subIndex, "bot_prompt", e.target.value)
                                       }
                                       placeholder="What the bot says..."
-                                      className="text-xs border border-input bg-background mt-1"
+                                      className="text-xs border border-input bg-background mt-1 min-h-[2rem] resize-none"
                                     />
                                   </div>
                                   <div>
                                     <Label className="text-xs text-muted-foreground">User Answer</Label>
-                                    <Input
+                                    <Textarea
                                       key={`user-answer-${optKey}-${subIndex}-${node.id}`}
                                       value={example.user_answer}
                                       onChange={(e) =>
                                         updateFewShotExample(optKey, subIndex, "user_answer", e.target.value)
                                       }
                                       placeholder="Expected user response..."
-                                      className="text-xs border border-input bg-background mt-1"
+                                      className="text-xs border border-input bg-background mt-1 min-h-[2rem] resize-none"
                                     />
                                   </div>
                                 </div>
