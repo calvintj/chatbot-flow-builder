@@ -1,13 +1,44 @@
+// custom-edge.tsx
+
 "use client"
 
 import { memo } from "react"
-import { type EdgeProps, getBezierPath, EdgeLabelRenderer, useReactFlow } from "@xyflow/react"
+import {
+  type EdgeProps,
+  getBezierPath,
+  EdgeLabelRenderer,
+  useReactFlow,
+  BaseEdge,
+} from "@xyflow/react"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+
+// ✨ NEW: Helper function to get a C-shaped path for self-looping edges ✨
+const getLoopPath = (sourceX: number, sourceY: number, targetX: number, targetY: number) => {
+  const xOffset = 80
+  const yOffset = 20
+
+  // Control points are pushed out to the right to create the C-shape
+  const controlPointX1 = sourceX + xOffset
+  const controlPointY1 = sourceY - yOffset
+  const controlPointX2 = targetX + xOffset
+  const controlPointY2 = targetY + yOffset
+
+  const path = `M ${sourceX} ${sourceY} C ${controlPointX1} ${controlPointY1}, ${controlPointX2} ${controlPointY2}, ${targetX} ${targetY}`
+  
+  // Calculate label position to be at the peak of the C-curve
+  const labelX = sourceX + xOffset + 10
+  const labelY = (sourceY + targetY) / 2
+
+  return [path, labelX, labelY]
+}
+
 
 export const CustomEdge = memo(
   ({
     id,
+    source, // Add source node id
+    target, // Add target node id
     sourceX,
     sourceY,
     targetX,
@@ -15,55 +46,35 @@ export const CustomEdge = memo(
     sourcePosition,
     targetPosition,
     style = {},
-    markerEnd,
     data,
   }: EdgeProps) => {
     const { deleteElements } = useReactFlow()
+    const isSelfLooping = source === target
 
-     const calculateSmartPath = () => {
-      const dx = targetX - sourceX
-      const dy = targetY - sourceY
-      const distance = Math.sqrt(dx * dx + dy * dy)
+    let edgePath: string
+    let labelX: number
+    let labelY: number
 
-      // If nodes are close, create a curved path that goes around
-      if (distance < 200) {
-        const midX = (sourceX + targetX) / 2
-        const midY = (sourceY + targetY) / 2
-
-        // Add offset to curve around nodes
-        const offsetX = dy > 0 ? 100 : -100
-        const offsetY = dx > 0 ? -50 : 50
-
-        return `M ${sourceX} ${sourceY} Q ${midX + offsetX} ${midY + offsetY} ${targetX} ${targetY}`
-      }
-
-      // For longer distances, use standard bezier with enhanced control points
-      const [edgePath] = getBezierPath({
+    // ✨ UPDATED: Logic to choose path type ✨
+    if (isSelfLooping) {
+      // Use our new loop path function for self-connections
+      ;[edgePath, labelX, labelY] = getLoopPath(sourceX, sourceY, targetX, targetY)
+    } else {
+      // Keep the original logic for all other edges
+      ;[edgePath, labelX, labelY] = getBezierPath({
         sourceX,
         sourceY,
         sourcePosition,
         targetX,
         targetY,
         targetPosition,
-        curvature: 0.3, // Increased curvature for better routing
+        curvature: 0.3,
       })
-
-      return edgePath
     }
-
-    const [, labelX, labelY] = getBezierPath({
-      sourceX,
-      sourceY,
-      sourcePosition,
-      targetX,
-      targetY,
-      targetPosition,
-    })
-
-    const smartPath = calculateSmartPath()
-
+    
     return (
       <>
+        {/* Define the arrow marker. This is reusable for all edges. */}
         <defs>
           <marker
             id={`arrow-${id}`}
@@ -73,26 +84,24 @@ export const CustomEdge = memo(
             refY="6"
             orient="auto"
             markerUnits="strokeWidth"
-            style={{ zIndex: 1002 }}
           >
             <path d="M2,2 L2,10 L10,6 z" fill="#10b981" />
           </marker>
         </defs>
-        <path
-          id={id}
+        
+        {/* Use BaseEdge for the path itself and handle the label separately */}
+        <BaseEdge 
+          id={id} 
+          path={edgePath} 
+          markerEnd={`url(#arrow-${id})`} 
           style={{
-            ...style,
-            strokeWidth: 3,
-            stroke: "#10b981",
-            strokeDasharray: "none",
-            zIndex: 1002,
-            position: "relative",
-          }}
-          className="react-flow__edge-path transition-all duration-200 hover:stroke-[4px] drop-shadow-lg !z-[1002] relative"
-          d={smartPath}
-          markerEnd={`url(#arrow-${id})`}
-          fill="none"
+            ...style, 
+            strokeWidth: 3, 
+            stroke: "#10b981", 
+            zIndex: 1001 
+          }} 
         />
+        
         <EdgeLabelRenderer>
           <div
             style={{
@@ -102,7 +111,7 @@ export const CustomEdge = memo(
               pointerEvents: "all",
               zIndex: 1003,
             }}
-            className="nodrag nopan !z-[1003]"
+            className="nodrag nopan"
           >
             <div className="flex items-center gap-1 bg-background border border-border rounded px-2 py-1 shadow-md">
               <span className="text-xs font-mono text-emerald-600 font-medium">

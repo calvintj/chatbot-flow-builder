@@ -1,3 +1,5 @@
+// step-node.tsx
+
 "use client"
 
 import { memo, useState } from "react"
@@ -62,7 +64,7 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
               </Badge>
             </div>
             <div className="space-y-2 relative">
-              {Object.entries(answer_options).map(([key, value], index) => (
+              {Object.entries(answer_options).map(([key, value]) => (
                 <div key={key} className="flex items-center gap-2 group relative">
                   <Handle
                     type="source"
@@ -78,7 +80,6 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
                   />
                   <div className="flex-1 p-2 bg-muted rounded text-xs transition-all duration-200 group-hover:bg-accent/20 group-hover:border group-hover:border-accent pr-4">
                     <div className="flex items-center gap-1">
-                      {/* <Grip className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" /> */}
                       <span className="font-mono text-emerald-600 font-medium">{key}:</span>
                     </div>
                     <span className="text-foreground">{value}</span>
@@ -96,11 +97,28 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
         )}
       </CardContent>
 
-      {/* Input handle for connections */}
+      {/* ✨ UPDATED: Main Input handle with explicit ID ✨ */}
       <Handle
         type="target"
         position={Position.Left}
+        id="main-target"
         className="!w-4 !h-4 !bg-emerald-500 !border-2 !border-white !shadow-md transition-all duration-200 hover:!w-5 hover:!h-5 hover:!bg-emerald-600"
+      />
+
+      {/* ✨ NEW: Invisible handle for self-connections ✨ */}
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="self-loop-target"
+        style={{
+            top: '25px', // Position it near the top right
+            right: '-8px',
+            background: 'transparent', // Make it "invisible"
+            border: 'none',
+            width: 16,
+            height: 16,
+            zIndex: -1, // Push it behind other elements
+        }}
       />
 
       {isHovered && (

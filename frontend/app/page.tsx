@@ -1,3 +1,5 @@
+// page.tsx
+
 "use client"
 
 import type React from "react"
@@ -73,14 +75,12 @@ export default function FlowBuilder() {
 
   const handleEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
-      // Process edge deletions to update node transitions
       const deletedEdges = changes
         .filter((change) => change.type === "remove")
         .map((change) => edges.find((edge) => edge.id === change.id))
         .filter(Boolean) as Edge[]
 
       if (deletedEdges.length > 0) {
-        // Update node transitions for deleted edges
         setNodes((nds) =>
           nds.map((node) => {
             const edgesToRemove = deletedEdges.filter((edge) => edge.source === node.id)
@@ -100,8 +100,6 @@ export default function FlowBuilder() {
           }),
         )
       }
-
-      // Let React Flow handle the edge changes
       onEdgesChange(changes)
     },
     [edges, onEdgesChange, setNodes],
@@ -111,16 +109,26 @@ export default function FlowBuilder() {
     (params: Connection) => {
       if (!params.source || !params.target || !params.sourceHandle) return
 
-      // Check if target is an answer option handle (source handles are answer options)
-      const targetNode = nodes.find((n) => n.id === params.target)
-      if (!targetNode) return
-
-      // If target handle exists, it means we're trying to connect to an answer option
-      // Only allow connections to the main node (no targetHandle)
-      if (params.targetHandle) {
-        console.log("[v0] Blocked connection: Cannot connect answer option to answer option")
-        return
+      // ✨ START: Self-looping and handle assignment logic ✨
+      // If the source and target nodes are the same, it's a self-loop.
+      if (params.source === params.target) {
+        // Redirect the connection to our dedicated self-loop handle.
+        params.targetHandle = "self-loop-target"
+      } else if (params.targetHandle) {
+        // This is a check to prevent connecting an answer option TO another answer option.
+        // The only valid target handles are our special ones.
+        // We allow 'self-loop-target' (handled above) and 'main-target'.
+        // Any other target handle implies connecting to a source handle, which we block.
+        if (params.targetHandle !== "main-target") {
+            console.log("Blocked connection: Cannot connect an output to another output.");
+            return;
+        }
+      } else {
+        // If no specific target handle is hit (i.e., user drops on node body),
+        // connect to the main input handle on the left.
+        params.targetHandle = "main-target"
       }
+      // ✨ END: Self-looping and handle assignment logic ✨
 
       setEdges((eds) => {
         // Remove existing edge from the same source handle
@@ -133,13 +141,9 @@ export default function FlowBuilder() {
           ...params,
           id: `${params.source}-${params.sourceHandle}-${params.target}`,
           type: "custom",
+          // The visual styles are now handled inside CustomEdge, but we pass markerEnd
           markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: "hsl(var(--primary))",
-          },
-          style: {
-            stroke: "hsl(var(--primary))",
-            strokeWidth: 2,
+            type: MarkerType.Arrow, // Using a generic type, CustomEdge will define the marker
           },
           data: {
             sourceHandle: params.sourceHandle,
@@ -155,7 +159,7 @@ export default function FlowBuilder() {
           if (node.id === params.source) {
             const updatedTransitions = {
               ...node.data.transitions,
-              [params.sourceHandle]: Number.parseInt(params.target),
+              [params.sourceHandle as string]: Number.parseInt(params.target as string),
             }
             return {
               ...node,
@@ -169,14 +173,13 @@ export default function FlowBuilder() {
         }),
       )
     },
-    [setEdges, setNodes, nodes],
+    [setEdges, setNodes], // Removed `nodes` dependency to prevent stale closure issues
   )
 
   const onEdgesDelete = useCallback(
     (edgesToDelete: Edge[]) => {
       setEdges((eds) => eds.filter((edge) => !edgesToDelete.some((deleteEdge) => deleteEdge.id === edge.id)))
 
-      // Update node transitions to remove deleted connections
       edgesToDelete.forEach((edge) => {
         if (edge?.source && edge?.data?.sourceHandle) {
           setNodes((nds) =>
@@ -234,13 +237,11 @@ export default function FlowBuilder() {
         setSelectedNode({ ...selectedNode, data: newData })
       }
 
-      // Update edges if answer options changed
       const oldNode = nodes.find((n) => n.id === nodeId)
       if (oldNode) {
         const oldOptions = Object.keys(oldNode.data.answer_options)
         const newOptions = Object.keys(newData.answer_options)
 
-        // Remove edges for deleted options
         const deletedOptions = oldOptions.filter((opt) => !newOptions.includes(opt))
         if (deletedOptions.length > 0) {
           setEdges((eds) =>
@@ -255,15 +256,12 @@ export default function FlowBuilder() {
   const exportData = useMemo(() => {
     return nodes.map((node) => {
       const { step_id, instruction, answer_options, few_shot_examples } = node.data
-
-      // Build transitions from current edges
       const transitions: Record<string, number> = {}
       edges.forEach((edge) => {
         if (edge.source === node.id && edge.sourceHandle && edge.target) {
           transitions[edge.sourceHandle] = Number.parseInt(edge.target)
         }
       })
-
       return {
         step_id,
         instruction,
@@ -276,11 +274,9 @@ export default function FlowBuilder() {
 
   const handleImportData = useCallback(
     (importedData: NodeDataType[]) => {
-      // Clear existing nodes and edges
       setNodes([])
       setEdges([])
 
-      // Create nodes from imported data
       const newNodes: Node<NodeDataType>[] = importedData.map((step, index) => ({
         id: step.step_id.toString(),
         type: "stepNode",
@@ -288,7 +284,6 @@ export default function FlowBuilder() {
         data: step,
       }))
 
-      // Create edges from transitions
       const newEdges: Edge[] = []
       importedData.forEach((step) => {
         if (step.transitions) {
@@ -300,17 +295,8 @@ export default function FlowBuilder() {
               target: targetStepId.toString(),
               sourceHandle,
               type: "custom",
-              markerEnd: {
-                type: MarkerType.ArrowClosed,
-                color: "hsl(var(--primary))",
-              },
-              style: {
-                stroke: "hsl(var(--primary))",
-                strokeWidth: 2,
-              },
-              data: {
-                sourceHandle,
-              },
+              markerEnd: { type: MarkerType.Arrow },
+              data: { sourceHandle },
             })
           })
         }
@@ -318,14 +304,12 @@ export default function FlowBuilder() {
 
       setNodes(newNodes)
       setEdges(newEdges)
-
-      // Update next step ID
       const maxStepId = Math.max(...importedData.map((step) => step.step_id))
       setNextStepId(maxStepId + 1)
     },
     [setNodes, setEdges],
   )
-
+  
   const onNodesDelete = useCallback(
     (nodesToDelete: Node[]) => {
       if (!nodesToDelete || nodesToDelete.length === 0) return
@@ -333,17 +317,14 @@ export default function FlowBuilder() {
       const nodeIdsToDelete = nodesToDelete.map((node) => node?.id).filter(Boolean)
       if (nodeIdsToDelete.length === 0) return
 
-      // Remove edges connected to deleted nodes
       setEdges((eds) =>
         eds.filter((edge) => !nodeIdsToDelete.includes(edge.source) && !nodeIdsToDelete.includes(edge.target)),
       )
 
-      // Clear selected node if it's being deleted
       if (selectedNode && nodeIdsToDelete.includes(selectedNode.id)) {
         setSelectedNode(null)
       }
 
-      // Update transitions in remaining nodes that referenced deleted nodes
       setNodes((nds) =>
         nds
           .filter((node) => !nodeIdsToDelete.includes(node.id))
