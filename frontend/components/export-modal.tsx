@@ -96,7 +96,7 @@ export function ExportModal({ isOpen, onClose, data, onImportData }: ExportModal
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="export" className="flex items-center gap-2">
               <Download className="w-4 h-4" />
@@ -112,7 +112,8 @@ export function ExportModal({ isOpen, onClose, data, onImportData }: ExportModal
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="export" className="flex-1 space-y-4">
+          {/* Export Tab Content */}
+          <TabsContent value="export" className="flex-1 flex flex-col space-y-4 min-h-0 pt-4"> {/* Added pt-4 for spacing */}
             <div className="grid grid-cols-4 gap-4">
               <div className="text-center p-3 bg-muted rounded-lg">
                 <div className="text-2xl font-bold text-primary">{stats.totalSteps}</div>
@@ -146,14 +147,16 @@ export function ExportModal({ isOpen, onClose, data, onImportData }: ExportModal
               </Badge>
             </div>
 
-            <div className="relative flex-1">
-              <pre className="bg-muted p-4 rounded-lg text-xs overflow-auto max-h-96 font-mono border">
+            {/* Export JSON display area */}
+            <div className="flex-1 relative"> {/* This flex-1 helps the pre tag take available space */}
+              <pre className="bg-muted p-4 rounded-lg text-xs font-mono border max-h-[300px] overflow-y-auto">
                 {jsonString}
               </pre>
             </div>
           </TabsContent>
 
-          <TabsContent value="import" className="flex-1 space-y-4">
+          {/* Import Tab Content */}
+          <TabsContent value="import" className="flex-1 flex flex-col space-y-4 min-h-0 pt-4"> {/* Added pt-4 for spacing */}
             <Alert>
               <FileText className="w-4 h-4" />
               <AlertDescription>
@@ -162,7 +165,7 @@ export function ExportModal({ isOpen, onClose, data, onImportData }: ExportModal
               </AlertDescription>
             </Alert>
 
-            <div className="space-y-2">
+            <div className="flex-1 flex flex-col space-y-2">
               <Label htmlFor="import-data">JSON Data</Label>
               <Textarea
                 id="import-data"
@@ -172,7 +175,7 @@ export function ExportModal({ isOpen, onClose, data, onImportData }: ExportModal
                   setImportError("")
                 }}
                 placeholder="Paste your JSON data here..."
-                className="min-h-[200px] font-mono text-xs"
+                className="h-[250px] font-mono text-xs"
               />
             </div>
 
@@ -200,7 +203,7 @@ export function ExportModal({ isOpen, onClose, data, onImportData }: ExportModal
 
             <div className="text-xs text-muted-foreground">
               <p className="font-medium mb-1">Expected format:</p>
-              <pre className="bg-muted p-2 rounded text-xs">
+              <pre className="bg-muted p-2 rounded text-xs max-h-40 overflow-y-auto">
                 {`[
   {
     "step_id": 1,
@@ -225,8 +228,9 @@ export function ExportModal({ isOpen, onClose, data, onImportData }: ExportModal
             </div>
           </TabsContent>
 
-          <TabsContent value="preview" className="flex-1 space-y-4">
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+          {/* Preview Tab Content */}
+          <TabsContent value="preview" className="flex-1 flex flex-col space-y-4 min-h-0 pt-4"> {/* Added pt-4 for spacing */}
+            <div className="space-y-4 flex-1 overflow-y-auto"> {/* Adjusted for scrolling */}
               {data.map((step, index) => (
                 <div key={step.step_id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-center justify-between">
@@ -255,7 +259,7 @@ export function ExportModal({ isOpen, onClose, data, onImportData }: ExportModal
                             {key}
                           </Badge>
                           <span className="text-muted-foreground">→</span>
-                          <span>{value}</span>
+                          <span>{value as string}</span>
                           {step.transitions?.[key] && (
                             <>
                               <span className="text-muted-foreground">→ Step</span>
