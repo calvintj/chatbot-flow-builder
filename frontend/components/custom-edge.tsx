@@ -58,7 +58,7 @@ export const CustomEdge = memo(
     // ✨ UPDATED: Logic to choose path type ✨
     if (isSelfLooping) {
       // Use our new loop path function for self-connections
-      ;[edgePath, labelX, labelY] = getLoopPath(sourceX, sourceY, targetX, targetY)
+      ;[edgePath, labelX, labelY] = getLoopPath(sourceX, sourceY, targetX, targetY) as [string, number, number]
     } else {
       // Keep the original logic for all other edges
       ;[edgePath, labelX, labelY] = getBezierPath({
