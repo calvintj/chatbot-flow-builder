@@ -73,6 +73,12 @@ export function EditingPanel({
   }, [instruction, answerOptions, fewShotExamples, node.data]);
 
   const handleSave = () => {
+    // Check for blank keys
+    const hasBlank = Object.keys(answerOptions).some(key => key.trim() === '');
+    if (hasBlank) {
+      alert("Blank keys are not allowed, please fix or delete options with empty keys.");
+      return;
+    }
     const updatedData = {
       ...node.data,
       instruction,
@@ -124,11 +130,8 @@ export function EditingPanel({
     }
 
     // Case 2: The key is being renamed.
-    // Prevent creating an empty key or a key that already exists.
-    if (
-      !trimmedNewKey ||
-      (answerOptions[trimmedNewKey] && trimmedNewKey !== oldKey)
-    ) {
+    // Prevent creating a key that already exists.
+    if (answerOptions[trimmedNewKey] && trimmedNewKey !== oldKey) {
       // You could add user feedback here, e.g., a toast notification.
       return;
     }

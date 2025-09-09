@@ -63,44 +63,41 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
             >
               {nodeType === "first" ? (
                 <>
-                  <Play className="w-3 h-3 mr-1" />
-                  START
+                  <MoreHorizontal className="w-3 h-3 mr-1" />S
                 </>
               ) : nodeType === "last" ? (
                 <>
-                  <Square className="w-3 h-3 mr-1" />
-                  END
+                  <MoreHorizontal className="w-3 h-3 mr-1" />E
                 </>
               ) : (
                 <>
                   <MoreHorizontal className="w-3 h-3 mr-1" />
-                  NONE
                 </>
               )}
             </Button>
-          <div className="flex items-center gap-2">
-            {selected && (
-              <Badge variant="default" className="text-xs px-2 py-0.5">
-                <Edit3 className="w-3 h-3 mr-1" />
-                Editing
-              </Badge>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }}
-            >
-              {isExpanded ? (
-                <ChevronUp className="w-3 h-3" />
-              ) : (
-                <ChevronDown className="w-3 h-3" />
+            <div className="flex items-center gap-2">
+              {selected && (
+                <Badge variant="default" className="text-xs px-2 py-0.5">
+                  <Edit3 className="w-3 h-3 mr-1" />
+                  Editing
+                </Badge>
               )}
-            </Button>
-          </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+              >
+                {isExpanded ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
+              </Button>
+            </div>
           </div>
         </CardTitle>
       </CardHeader>
