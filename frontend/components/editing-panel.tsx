@@ -378,7 +378,7 @@ export function EditingPanel({
                                 {optKey}
                               </Badge>
                               <div className="flex items-center gap-1">
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge variant="secondary" className="text-xs text-primary-foreground">
                                   {(fewShotExamples[optKey] || []).length}{" "}
                                   examples
                                 </Badge>

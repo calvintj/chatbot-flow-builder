@@ -85,7 +85,7 @@ export const CustomEdge = memo(
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <path d="M2,2 L2,10 L10,6 z" fill="#10b981" />
+            <path d="M2,2 L2,10 L10,6 z" fill="oklch(0.3 0 0)" />
           </marker>
         </defs>
         
@@ -97,7 +97,7 @@ export const CustomEdge = memo(
           style={{
             ...style, 
             strokeWidth: 3, 
-            stroke: "#10b981", 
+            stroke: "oklch(0.3 0 0)", 
             zIndex: 1001 
           }} 
         />
@@ -114,7 +114,7 @@ export const CustomEdge = memo(
             className="nodrag nopan"
           >
             <div className="flex items-center gap-1 bg-background border border-border rounded px-2 py-1 shadow-md">
-              <span className="text-xs font-mono text-emerald-600 font-medium">
+              <span className="text-xs font-mono text-primary font-medium">
                 {data?.sourceHandle && typeof data.sourceHandle === 'string' ? data.sourceHandle : "connection"}
               </span>
               <Button

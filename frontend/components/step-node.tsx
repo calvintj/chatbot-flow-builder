@@ -12,8 +12,6 @@ import {
   ChevronUp,
   Edit3,
   Grip,
-  Play,
-  Square,
   MoreHorizontal,
 } from "lucide-react";
 
@@ -37,15 +35,15 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
       className={`min-w-[280px] max-w-[320px] shadow-lg transition-all duration-200 cursor-pointer relative z-0 ${
         selected ? "ring-2 ring-primary ring-offset-2 shadow-xl" : ""
       } ${isHovered ? "shadow-xl scale-[1.02]" : ""} ${
-        nodeType === "first" ? "border-green-500 border-2" : ""
-      } ${nodeType === "last" ? "border-orange-500 border-2" : ""}`}
+        nodeType === "first" ? "border-primary border-2" : ""
+      } ${nodeType === "last" ? "border-destructive border-2" : ""}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <CardHeader className="pb-[0]">
         <CardTitle className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="font-mono">
+            <Badge variant="secondary" className="font-mono text-primary-foreground">
               Step {step_id as number}
             </Badge>
             <Button
@@ -53,9 +51,9 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
               size="sm"
               className={`h-6 px-2 text-xs font-medium transition-colors ${
                 nodeType === "first"
-                  ? "bg-green-100 hover:bg-green-200 text-green-700 border border-green-300"
+                  ? "bg-primary/20 hover:bg-primary/30 text-primary-foreground border border-primary/50"
                   : nodeType === "last"
-                  ? "bg-red-100 hover:bg-red-200 text-red-700 border border-red-300"
+                  ? "bg-destructive/20 hover:bg-destructive/30 text-destructive-foreground border border-destructive/50"
                   : "hover:bg-accent text-muted-foreground"
               }`}
               onClick={handleNodeTypeToggle}
@@ -134,7 +132,7 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
                       type="source"
                       position={Position.Right}
                       id={key}
-                      className="!w-4 !h-4 !bg-emerald-500 !border-2 !border-white !shadow-md transition-all duration-200 hover:!w-5 hover:!h-5 hover:!bg-emerald-600 !z-10"
+                      className="!w-4 !h-4 !bg-primary !border-2 !border-white !shadow-md transition-all duration-200 hover:!w-5 hover:!h-5 hover:!bg-primary/80 !z-10"
                       style={{
                         right: "-8px",
                         top: "50%",
@@ -144,7 +142,7 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
                     />
                     <div className="flex-1 p-2 bg-muted rounded text-xs transition-all duration-200 group-hover:bg-accent/20 group-hover:border group-hover:border-accent pr-4">
                       <div className="flex items-center gap-1">
-                        <span className="font-mono text-emerald-600 font-medium">
+                        <span className="font-mono text-primary font-medium">
                           {key}:
                         </span>
                       </div>
@@ -170,7 +168,7 @@ export const StepNode = memo(({ data, selected }: NodeProps) => {
         type="target"
         position={Position.Left}
         id="main-target"
-        className="!w-4 !h-4 !bg-emerald-500 !border-2 !border-white !shadow-md transition-all duration-200 hover:!w-5 hover:!h-5 hover:!bg-emerald-600"
+        className="!w-4 !h-4 !bg-primary !border-2 !border-white !shadow-md transition-all duration-200 hover:!w-5 hover:!h-5 hover:!bg-primary/80"
       />
 
       {/* ✨ NEW: Invisible handle for self-connections ✨ */}

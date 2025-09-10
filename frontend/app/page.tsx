@@ -529,10 +529,10 @@ export default function FlowBuilder() {
         >
           <Controls className="bg-card border-border" />
           <MiniMap
-            className="bg-card border-border"
-            nodeColor="#10b981"
-            maskColor="rgba(0, 0, 0, 0.1)"
-          />
+                      className="bg-card border-border"
+                      nodeColor="oklch(0.7 0 0)"
+                      maskColor="rgba(0, 0, 0, 0.1)"
+                    />
           <Background
             variant={BackgroundVariant.Dots}
             gap={20}
