@@ -78,14 +78,14 @@ export const CustomEdge = memo(
         <defs>
           <marker
             id={`arrow-${id}`}
-            markerWidth="12"
-            markerHeight="12"
-            refX="10"
-            refY="6"
+            markerWidth="6"
+            markerHeight="6"
+            refX="5"
+            refY="3"
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <path d="M2,2 L2,10 L10,6 z" fill="oklch(0.3 0 0)" />
+            <path d="M1,1 L1,5 L5,3 z" fill="oklch(0.3 0 0)" />
           </marker>
         </defs>
         
