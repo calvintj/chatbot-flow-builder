@@ -73,9 +73,13 @@ export function EditingPanel({
 
   const handleSave = () => {
     // Check for blank keys
-    const hasBlank = Object.keys(answerOptions).some(key => key.trim() === '');
+    const hasBlank = Object.keys(answerOptions).some(
+      (key) => key.trim() === ""
+    );
     if (hasBlank) {
-      alert("Blank keys are not allowed, please fix or delete options with empty keys.");
+      alert(
+        "Blank keys are not allowed, please fix or delete options with empty keys."
+      );
       return;
     }
     const updatedData = {
@@ -377,7 +381,10 @@ export function EditingPanel({
                                 {optKey}
                               </Badge>
                               <div className="flex items-center gap-1">
-                                <Badge variant="secondary" className="text-xs text-primary-foreground">
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs text-primary-foreground"
+                                >
                                   {(fewShotExamples[optKey] || []).length}{" "}
                                   examples
                                 </Badge>
