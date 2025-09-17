@@ -305,7 +305,7 @@ export default function FlowBuilder() {
   }, [nextStepId, setNodes]);
 
   const updateNodeData = useCallback(
-    (nodeId: string, newData: any) => {
+    (nodeId: string, newData: NodeDataType) => {
       setNodes((nds) =>
         nds.map((node) =>
           node.id === nodeId ? { ...node, data: newData } : node

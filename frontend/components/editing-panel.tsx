@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import type { Node } from "@xyflow/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { X, Plus, Trash2, Save, RotateCcw, Eye, Edit3 } from "lucide-react";
@@ -264,7 +263,7 @@ export function EditingPanel({
             {hasUnsavedChanges && (
               <Alert>
                 <AlertDescription className="text-sm">
-                  You have unsaved changes. Don't forget to save your work!
+                  You have unsaved changes. Don&apos;t forget to save your work!
                 </AlertDescription>
               </Alert>
             )}
